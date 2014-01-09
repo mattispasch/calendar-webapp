@@ -1,0 +1,33 @@
+<div class="searchField">
+	<span>Suche: </span><input ng-model="searchField" />
+</div>
+
+<div>
+	<table class="list">
+		<tr>
+			<th></th>
+			<th>Name</th>
+			<th>Telefon</th>
+			<th>E-Mail</th>
+		</tr>
+		<tr ng-repeat="cal in calendars | filter:searchField" class="line{{$index % 2}}">
+			<td style="width: 10%">
+				<a href="#/detail/{{cal.id}}">
+					<img src="images/icons/document.png" alt="Anzeigen"/>
+				</a>
+				<a href="#/edit/{{cal.id}}">
+					<img src="images/icons/edit.png" alt="Bearbeiten"/>
+				</a>
+			</td>
+			<td style="width: 20%">
+				{{cal.name}}
+			</td>
+			<td style="width: 35%">
+				{{cal.summary}}
+			</td>
+			<td style="width: 35%">
+				<button ng-click="deleteEvents('{{cal.id}}')">Events l&ouml;schen</button>
+			</td>
+		</tr>
+	</table>
+</div>

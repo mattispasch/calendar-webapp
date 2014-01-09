@@ -1,0 +1,17 @@
+<div>
+	<h2>Events ({{totalEvents}})</h2>
+	<div ng-if="totalEvents > 100">Zeige Ergebnisse 1-100</div>
+	<div ng-if="totalEvents > 0"><button ng-click="emptyTrash()">Mülleimer leeren</button>(KANN NICHT R&Uuml;CKG&Auml;NGIG GEMACHT WERDEN)</div>
+	<table>
+		<tr>
+			<th>Name</th>
+			<th>Von</th>
+			<th>Bis</th>
+		</tr>
+		<tr ng-repeat="e in events" class="line{{$index % 2}}">
+			<td>{{e.name}}</td>
+			<td>{{e.start | date}}</td>
+			<td>{{e.end | date}}</td>
+		</tr>
+	</table>
+</div>

@@ -1,0 +1,21 @@
+<div id="registerApiKey">
+<!-- 	<div id="syncInfoRaw">{{syncInfo}}</div> -->
+	
+	<div ng-if="!showForm">Lade API Key...</div>
+	
+	<div ng-if="showForm">
+		<h2>API Token:</h2>
+		<form>
+			<fieldset>
+				<p>CLIENT_ID:<p>
+				<input type="text" ng-model="syncInfo.clientId" />
+			</fieldset>
+			<fieldset>
+				<p>Client Secret:<p>
+				<input type="text" ng-model="syncInfo.clientSecret" />
+			</fieldset>
+			<button ng-click="save()">Speichern</button>
+		</form>
+	</div>
+</div>
+

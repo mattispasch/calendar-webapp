@@ -1,0 +1,19 @@
+{
+  "name": "calendar-webapp",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start": "node app.js"
+  },
+  "test": "jasmine-node --autotest ./spec",
+  "dependencies": {
+    "express": "3.2.6",
+    "hjs": "*",
+    "googleapis" : "*",
+    "async" : "*",
+    "moment" : "*"
+  },
+  "devDependencies" : {
+	  "jasmine-node" : "*"
+  }
+}

@@ -1,0 +1,18 @@
+<div ng-if="!calendars">Kalender werden geladen...</div>
+<div>
+	<form>
+		<table>
+			<tr>
+				<th>Name</th>
+				<th>Beschreibung</th>
+				<th>Synchronisieren</th>
+			</tr>
+			<tr ng-repeat="c in calendars" style="background-color: {{c.style.backgroundColor}}">
+				<td>{{c.name}}</td>
+				<td>{{c.description}}</td>
+				<td><input type="checkbox" ng-model="c.google.synchronize"/></td>
+			</tr>
+		</table>
+		<button ng-click="save()">Speichern</button>
+	</form>
+</div>

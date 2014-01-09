@@ -1,0 +1,16 @@
+<div>
+	<table>
+		<tr>
+			<th>Name</th>
+			<th>von</th>
+			<th>bis</th>
+			<th>Wdh.</th>
+		</tr>
+		<tr ng-repeat="e in events" class="line{{$index % 2}}">
+			<td>{{e.name}}</td>
+			<td>{{e.start | date}}</td>
+			<td>{{e.end | date}}</td>
+			<td>{{e.sequenceNr}}</td>
+		</tr>
+	</table>
+</div>

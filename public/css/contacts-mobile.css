@@ -1,0 +1,36 @@
+div.menu {
+	background-color: #999999;
+	position: absolute;
+
+}
+
+div.content {
+	position: absolute;
+/* 	top: 220px; */
+}
+
+span.revision {
+	font-size: 8pt;
+	color: #bbbbbb;
+}
+
+/*Contact-List*/
+div.searchField {
+	background-color: #f5f5f5;
+}
+
+table.list {
+	border-collapse: collapse;
+}
+
+table.list td {
+	border-bottom: solid 1px #aaaaaa;
+}
+
+tr.line0 {
+	background-color: #ffffff;
+}
+
+tr.line1 {
+	background-color: #fcfcfc;
+}

@@ -1,0 +1,60 @@
+
+<form>
+	<span class="status">{{status}}</span>
+	<h1>
+		<input type="text" ng-model="contact.name" style="width: 100%;" />
+	</h1>
+	<span class="revision">ID: {{contact._id}}</span>
+	<span class="revision">Revision: {{contact._rev}}</span>
+	<h2>Telefonnummern
+		<a href="" ng-click="newPhone()" class="newPhone"><img src="images/icons/add.png" alt="Hinzuf&uuml;gen"/></a>
+	</h2>
+
+	<p ng-repeat="p in contact.phones">
+		
+		<b ng-if="!phoneLabelsLoaded"><input id="phoneLabelText{{$index}}" type="text" ng-model="p.label" />:</b>
+		<b ng-if="phoneLabelsLoaded">
+			<select id="phoneLabelSelect{{$index}}" ng-model="p.label" ng-change="onPhoneLabelChange()">
+				<option ng-repeat="label in phoneLabels" ng-selected="p.label == label.key" value="{{label.key}}">{{label.key}}</option>
+				<option value="createNewPhoneLabel">Neues Label erstellen</option>
+			</select>:
+		</b> 
+		
+		<input type="text" id="phoneNumber{{$index}}"
+			ng-model="p.number" /> <a href="" ng-click="deletePhone()"><img src="images/icons/close.png" alt="L&ouml;schen"/></a>
+	</p>
+	<p ng-if="!hasPhones()">Keine Telefonnummern vorhanden.</p>
+
+	<h2>E-Mail Adressen
+		<a href="" ng-click="newEmail()"><img src="images/icons/add.png" alt="Hinzuf&uuml;gen"/></a>
+	</h2>
+	<p ng-repeat="email in contact.emails">
+		<input type="text" ng-model="email.address" /><a href=""
+			ng-click="deleteEmail()"><img src="images/icons/close.png" alt="L&ouml;schen"/></a>
+	</p>
+	<p ng-if="!hasEmails()">Keine E-Mail-Adressen vorhanden.</p>
+
+	
+	<h2>Anschriften
+		<a href="" ng-click="newPostalAddress()"><img src="images/icons/add.png" alt="Hinzuf&uuml;gen"/></a>
+	</h2>
+	<p ng-repeat="pa in contact.postalAddresses">
+		<input type="text" ng-model="pa.address" /><a href=""
+			ng-click="deletePostalAddress()"><img src="images/icons/close.png" alt="L&ouml;schen"/></a>
+	</p>
+	
+	<h2>Sonstiges</h2>
+	<p>
+		<b>Geburtstag:</b> <input type="text" ng-model="contact.birthday" /> (JJJJ-MM-TT)
+	</p>
+
+
+	<button ng-click="save()">Speichern!</button> 
+	<button ng-click="abort()">Abbrechen</button>
+	
+	<div id="newPhoneLabelDialog" style="display:none">
+		<b>Name des neuen Labels: </b>
+		<input id="newPhoneLabelText" type="text" ng-model="newPhoneLabelText" />
+		<button id="newPhoneLabelButton" ng-click="newPhoneLabelSubmit()">Erstellen</button>
+	</div>
+</form>

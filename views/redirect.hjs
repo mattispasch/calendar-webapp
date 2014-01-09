@@ -1,0 +1,12 @@
+<html>
+	<head>
+		<meta http-equiv="refresh" content="0; URL={{url}}" />
+		<title>Automatische Weiterleitung</title>
+	</head>
+	<body>
+		<div class="message">{{message}}</div>
+	
+		Sie werden automatisch weitergeleitet. Wenn dies nicht funktioniert, klicken Sie bitte
+		<a href="{{url}}">hier.</a>
+	</body>
+</html>

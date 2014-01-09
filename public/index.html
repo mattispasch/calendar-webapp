@@ -1,0 +1,53 @@
+<!doctype html>
+<html ng-app="calender-webapp">
+<head>
+<!-- JQuery -->
+<script type="text/javascript" src="js/lib/jquery.js"></script>
+<script type="text/javascript" src="js/lib/jquery-migrate-1.2.1.js"></script>
+<script type="text/javascript" src="js/lib/jquery.couch.js"></script>
+
+<!-- JQuery UI -->
+<script type="text/javascript" src="jquery-ui/ui/jquery-ui.js"></script>
+<link rel="stylesheet"
+	href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css" />
+
+<!-- AngularJS -->
+<script src="js/lib/angular-1.2.0-rc.3/angular.js"></script>
+<script src="js/lib/angular-1.2.0-rc.3/angular-resource.js"></script>
+<script src="js/lib/angular-1.2.0-rc.3/angular-route.js"></script>
+
+<!-- helpers -->
+<script src="js/lib/uuid.js"></script>
+<script src="js/lib/moment.js"></script>
+
+<!-- our JS -->
+<script type="text/javascript" src="js/app.js"></script>
+<script type="text/javascript" src="js/common_filters.js"></script>
+<script type="text/javascript" src="js/google-sync-controller.js"></script>
+<script type="text/javascript" src="js/calendar-controller.js"></script>
+
+<link rel="stylesheet" href="css/contacts.css" type="text/css"></link>
+
+</head>
+<body>
+	<div>
+		<div class="menu">
+			<h2>Calender-App</h2>
+			<ul>
+				<li><a href="#/agenda">Agenda</a></li>
+				<li><a href="#/list">Kalender verwalten</a></li>
+				<li><a href="#/trash">M&uuml;lleimer</a></li>
+			</ul>
+			<h2>Google-Sync</h2>
+			<ul>			
+				<li><a href="#/google-register-api-key">1) API-Key eintragen</a></li>
+				<li><a href="#/google-allow">2) Zugriff erlauben</a></li>
+				<li><a href="#/google-test-api">3) Kalender ausw&auml;hlen</a></li>
+				<li><a href="#/google-synchronize">4) Kalender synchronisieren</a></li>
+			</ul>
+		</div>
+
+		<div class="content" ng-view></div>
+	</div>
+</body>
+</html>

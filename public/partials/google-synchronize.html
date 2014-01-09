@@ -1,0 +1,26 @@
+<div ng-if="!calendars">Kalender werden geladen...</div>
+<div>
+	<form>
+		<table>
+			<tr>
+				<th>Name</th>
+				<th>Beschreibung</th>
+				<th>Letzter Sync</th>
+				<th>Synchronisieren</th>
+				
+			</tr>
+			<tr ng-repeat="c in calendars" style="background-color: {{c.style.backgroundColor}}">
+				<td>{{c.name}}</td>
+				<td>{{c.description}}</td>
+				<td>
+					<div ng-if="c.google.lastSync">{{c.google.lastSync}}</div>
+					<div ng-if="!c.google.lastSync">Nie</div>
+				</td>
+				<td><button ng-click="sync('{{c.id}}')">Sync!!</button></td>
+			</tr>
+		</table>
+	</form>
+	<div id="log">
+		<p ng-repeat="line in log">{{line}}</p>
+	</div>
+</div>

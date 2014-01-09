@@ -1,0 +1,28 @@
+<div id="contactDetail">
+	<div class="dialog">
+		<div class="viewContact">
+			<span><a href="#/edit/{{contact._id}}" class="actionEdit"><img src="images/icons/edit.png" alt="Bearbeiten" /></a>
+				<a href="" ng-click="deleteContact()"><img src="images/icons/close.png" alt="L&ouml;schen"/></a>
+			</span>
+			<h1>{{contact.name}}</h1>
+			<span class="revision">Revision: {{contact._rev}}</span>
+			<h2>Telefonnummern</h2>
+			<p ng-repeat="p in contact.phones">
+				<b>{{p.label}}:</b> {{p.number}}
+			</p>
+			<h2>E-Mail Adressen</h2>
+
+			<p ng-repeat="email in contact.emails">{{email.address}}</p>
+
+			<h2>Anschriften</h2>
+
+			<p ng-repeat="pa in contact.postalAddresses">{{pa.address}}</p>
+			
+			<h2>Sonstiges</h2>
+			<p>
+				<b>Geburtstag:</b> {{contact.birthday}}
+			</p>
+		</div>
+	</div>
+</div>
+
