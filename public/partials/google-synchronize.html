@@ -6,21 +6,141 @@
 				<th>Name</th>
 				<th>Beschreibung</th>
 				<th>Letzter Sync</th>
+				<th>Sync. Testen</th>
 				<th>Synchronisieren</th>
-				
+
 			</tr>
-			<tr ng-repeat="c in calendars" style="background-color: {{c.style.backgroundColor}}">
+			<tr ng-repeat="c in calendars"
+				style="background-color: {{c.style.backgroundColor">
 				<td>{{c.name}}</td>
 				<td>{{c.description}}</td>
 				<td>
 					<div ng-if="c.google.lastSync">{{c.google.lastSync}}</div>
 					<div ng-if="!c.google.lastSync">Nie</div>
 				</td>
+				<td><button ng-click="showSyncTodo('{{c.id}}')">Sync
+						simulieren!</button></td>
 				<td><button ng-click="sync('{{c.id}}')">Sync!!</button></td>
 			</tr>
 		</table>
 	</form>
 	<div id="log">
 		<p ng-repeat="line in log">{{line}}</p>
+	</div>
+
+	<div ng-if="conflicts">
+		<h1>Konflikte</h1>
+		
+		<table>
+			<tr>
+				<th>GID</th>
+				<th>Lokal</th>
+				<th>Remote</th>
+			</tr>
+			<tr ng-repeat="c in conflicts">
+				<td>{{c.googleId}}</td>
+				<td>{{c.localOp}}</td>
+				<td>{{c.remoteOp}}</td>
+			</tr>
+		</table>
+	</div>
+
+	<div ng-if="todo">
+		<h2>Lokal ge&auml;nderte Termine:</h2>
+
+		<table>
+			<tr>
+				<th>ID</th>
+				<th>GID</th>
+				<th>Name</th>
+				<th>Start</th>
+			</tr>
+			<tr ng-repeat="event in todo.changedLocal">
+				<td>{{event._id}}</td>
+				<td>{{event.google.id}}</td>
+				<td>{{event.name}}</td>
+				<td>{{event.start | date}}</td>
+			</tr>
+		</table>
+
+		<h2>Lokale neue Termine:</h2>
+
+		<table>
+			<tr>
+				<th>ID</th>
+				<th>GID</th>
+				<th>Name</th>
+				<th>Start</th>
+			</tr>
+			<tr ng-repeat="event in todo.newLocal">
+				<td>{{event._id}}</td>
+				<td>{{event.google.id}}</td>
+				<td>{{event.name}}</td>
+				<td>{{event.start | date}}</td>
+			</tr>
+		</table>
+		<h2>Lokale gel&ouml;schte Termine:</h2>
+
+		<table>
+			<tr>
+				<th>ID</th>
+				<th>GID</th>
+				<th>Name</th>
+				<th>Start</th>
+			</tr>
+			<tr ng-repeat="event in todo.deletedLocal">
+				<td>{{event._id}}</td>
+				<td>{{event.google.id}}</td>
+				<td>{{event.name}}</td>
+				<td>{{event.start | date}}</td>
+			</tr>
+		</table>
+		<h2>Neue Termine bei Google:</h2>
+
+		<table>
+			<tr>
+				<th>ID</th>
+				<th>GID</th>
+				<th>Name</th>
+				<th>Start</th>
+			</tr>
+			<tr ng-repeat="event in todo.newRemote">
+				<td>{{event._id}}</td>
+				<td>{{event.google.id}}</td>
+				<td>{{event.name}}</td>
+				<td>{{event.start | date}}</td>
+			</tr>
+		</table>
+		<h2>Ge&auml;nderte Termine bei Google:</h2>
+
+		<table>
+			<tr>
+				<th>ID</th>
+				<th>GID</th>
+				<th>Name</th>
+				<th>Start</th>
+			</tr>
+			<tr ng-repeat="event in todo.changedRemote">
+				<td>{{event._id}}</td>
+				<td>{{event.google.id}}</td>
+				<td>{{event.name}}</td>
+				<td>{{event.start | date}}</td>
+			</tr>
+		</table>
+		<h2>Gel&ouml;schte Termine bei Google:</h2>
+		<table>
+			<tr>
+				<th>ID</th>
+				<th>GID</th>
+				<th>Name</th>
+				<th>Start</th>
+			</tr>
+			<tr ng-repeat="event in todo.deletedOnRemote">
+				<td>{{event._id}}</td>
+				<td>{{event.google.id}}</td>
+				<td>{{event.name}}</td>
+				<td>{{event.start | date}}</td>
+			</tr>
+		</table>
 	</div>
 </div>

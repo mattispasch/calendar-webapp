@@ -89,6 +89,8 @@ function GoogleSynchronizeCtrl($scope, $http, $location) {
 	}).error(function(err) {
 		alert("ERROR: " + err);
 	});
+	
+	
 
 	$scope.sync = function(calId) {
 		var syncUrl = "/google-sync/sync?id=" + calId;
@@ -100,4 +102,16 @@ function GoogleSynchronizeCtrl($scope, $http, $location) {
 		});
 	};
 
+	$scope.showSyncTodo = function(calId) {
+		var syncUrl = "/google-sync/getSyncTodo?id=" + calId;
+		console.log("get SyncTodo, CalID: " + calId);
+		$http.get(syncUrl).success(function(data) {
+			$scope.todo = data.todo;
+			$scope.conflicts = data.conflicts;
+		}).error(function(err) {
+			alert("ERROR: " + err);
+		});
+	};
+
+	
 } ]);

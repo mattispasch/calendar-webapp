@@ -42,6 +42,7 @@ app.get('/google-sync/generateAuthUrl', google_api.generateAuthUrl);
 app.get('/google-sync/codecallback', google_api.codecallback);
 app.get('/google-sync/apitest', google_api.selectCalendars);
 app.get('/google-sync/sync', google_api.sync);
+app.get('/google-sync/getSyncTodo', google_api.showSyncTodo);
 
 // CouchDB Forwarding:
 app.get('/couch/*', function(req, res) {

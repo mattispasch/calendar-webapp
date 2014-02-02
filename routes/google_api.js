@@ -1,3 +1,4 @@
+var assert = require('assert');
 var request = require('request');
 var async = require('async');
 var db = "http://localhost:5984/calendar";
@@ -17,7 +18,7 @@ exports.injectDependencies = {
 	}
 };
 
-exports.google = {
+exports.google = google = {
 	converter : require('../lib/googleConverter.js'),
 	api : require('../lib/googleAPIWrapper'),
 };
@@ -49,7 +50,7 @@ exports.codecallback = function(req, res) {
 };
 
 exports.selectCalendars = function(req, res) {
-	this.google.api.getAllCalendars(function(err, result) {
+	google.api.getAllCalendars(function(err, results) {
 		if (err) {
 			console.error("Error retriving calender list: " + JSON.stringify(err));
 			res.status = 400;
@@ -124,7 +125,7 @@ function loadRemoteEvents(googleId, callback) {
  * @param callback:
  *            function(err, {changedRemote: [], changedLocal: []})
  */
-exports.sync_getTodo = function(calId, syncTodoCallback) {
+exports.sync_getTodo = sync_getTodo = function(calId, syncTodoCallback) {
 	var that = this;
 	var calendarObj;
 
@@ -149,58 +150,195 @@ exports.sync_getTodo = function(calId, syncTodoCallback) {
 		// sync
 		var isFirstSync = !calendarObj.google.lastSync;
 		var mustCheckRemote;
-		if (isFirstSync) {
-			// first sync, no check needed.
-			mustCheckRemote = true;
-		} else {
-			that.google.api.getCalendarByGoogleId(calendarObj.google.id, function(err, result) {
-				if (err)
-					return callback(err);
-				if (result.etag == calendarObj.google.etag) {
-					console.log("Not syncing remote, calendar etags equal.");
-					mustCheckRemote = false;
-				} else {
-					console.log("Etags differ - starting sync!");
-					mustCheckRemote = true;
-				}
-			});
-		}
+
+		var newRemote = [];
 		var changedRemote = [];
-		var changedLocal = [];
-		async.series([ function getChangedRemote(callback) {
+		var deletedRemote = [];
+		var allLocal = [];
+		var localLookupByGoogleId = {};
+		var remoteLookupByGoogleId = {};
+		async.series([ function checkCalendarEtag(callback) {
+			if (isFirstSync) {
+				// first sync, no check needed.
+				mustCheckRemote = true;
+				callback();
+			} else {
+				that.google.api.getCalendarByGoogleId(calendarObj.google.id, function(err, result) {
+					if (err)
+						return callback(err);
+					if (result.etag == calendarObj.google.etag) {
+						console.log("Not syncing remote, calendar etags equal. - TODO: Check if etag always changes!");
+						mustCheckRemote = false;
+					} else {
+						console.log("Etags differ - starting sync!");
+						mustCheckRemote = true;
+					}
+					callback();
+				});
+			}
+		}, function getAllLocalEvents(callback) {
+			if (isFirstSync) {
+				return callback();
+			}
+			request.get(designDocUrl + "_view/events_by_cal?key=\"" + calId + "\"", function(err, res, body) {
+				if (err) {
+					return callback(err);
+				}
+				var json = JSON.parse(body);
+				json.rows.forEach(function(row) {
+					allLocal.push(row.value);
+				});
+				allLocal.forEach(function(event) {
+					if (event.google) {
+						localLookupByGoogleId[event.google.id] = event;
+					}
+				});
+				callback();
+			});
+		}, function getChangedRemote(callback) {
 			if (mustCheckRemote) {
 				loadRemoteEvents(calendarObj.google.id, function(err, events) {
 					if (err) {
 						return callback(err);
 					}
-					changedRemote = googleConverter.convertEventList(events, calId);
+					events.forEach(function(event) {
+						var localEvent = localLookupByGoogleId[event.id];
+						if (localEvent === undefined) {
+							newRemote.push(googleConverter.convertEvent(event, calId));
+						} else {
+							var etagLocal = localEvent.google.etag;
+							var etagRemote = event.etag;
+							if (etagLocal != etagRemote) {
+								console.log("event did change, local etag: " + etagLocal + ", Remote ETag: " + etagRemote);
+								changedRemote.push(googleConverter.convertEvent(event, calId));
+							} else {
+								// console.log("event did not change on remote:
+								// " + event.id);
+							}
+						}
+
+						// create Lookup
+						remoteLookupByGoogleId[event.id] = event;
+					});
+
 					callback();
 				});
 			} else {
 				changedRemote = [];
 				callback();
 			}
-		}, function getChangedLocal(callback) {
-			if(isFirstSync) {
-				return callback();
-			}
-			request.get(designDocUrl + "_views/events_by_cal?key=" + calId, function(err, res, body) {
-				if(err) {
-					return callback(err);
-				}
-				var json = JSON.parse(body);
-				changedLocal = json.values;
-				callback();
-			});
-		} ], function(err) {
+		}, ], function(err) {
 			if (err) {
 				return syncTodoCallback(err);
 			}
+			var newLocal = [];
+			var changedLocal = [];
+			var deletedOnRemote = [];
+			allLocal.forEach(function(localEvent) {
+				if (!localEvent.google) {
+					newLocal.push(localEvent);
+				} else {
+					var localRev = localEvent._rev.split('-')[0];
+					// console.log("Local Event: _rev: " + localRev + "
+					// lastSync: " + localEvent.google.lastSyncedRevision);
+					if (localRev > localEvent.google.lastSyncedRevision) {
+						changedLocal.push(localEvent);
+					}
+					// events can be changed locally AND be deleted on remote!
+					if (mustCheckRemote && !remoteLookupByGoogleId[localEvent.google.id]) {
+						deletedOnRemote.push(localEvent);
+					}
+				}
+			});
 			syncTodoCallback(null, {
+				newRemote : newRemote,
 				changedRemote : changedRemote,
-				changedLocal : changedLocal
+				deletedOnRemote : deletedOnRemote,
+				newLocal : newLocal,
+				changedLocal : changedLocal,
 			});
 		});
+
+	});
+};
+
+exports.syncEventByGoogleId = function(req, res) {
+	var googleId = req.query.googleId;
+	assert(googleId !== undefined, "Must call with googleID!");
+	var localEvent;
+	var remoteEvent;
+	async.parallel([ function loadLocalEvent(callback) {
+		var viewUrl = designDocUrl + "_view/event_by_google_id?key=\"" + googleId + '"';
+		request.get(viewUrl, function(err, res, body) {
+			if (err) {
+				return callback(err);
+			}
+			var obj = JSON.parse(body);
+			assert(obj.rows.length === 1, "There should be only one event with the googleID " + googleId);
+			localEvent = obj.rows[0].value;
+			callback();
+		});
+	}, function loadRemoteEvent(callback) {
+		google.api.getEvent(googleId, function(err, event) {
+			if (err) {
+				return callback(err);
+			}
+			remoteEvent = event;
+			callback();
+		});
+	} ], function(err) {
+		if (err) {
+			res.send({
+				err : err
+			});
+		}
+		var status = {};
+		var localRev = localEvent._rev.split('-')[0];
+		if (localEvent.google === undefined) {
+			status.local = "new";
+		} else {
+			if (localRev > localEvent.google.lastSyncedRevision) {
+				status.local = "changed";
+			} else {
+				status.local = "unchanged";
+			}
+		}
+
+		if (status.local != "new") {
+			if (!remoteEvent) {
+				status.remote = "deleted";
+			} else {
+				var localEtag = localEvent.google.etag;
+				if (localEtag != remoteEvent.etag) {
+					status.remote = "changed";
+				}
+			}
+		}
+
+		if (status.local == "unchanged" && status.remote == "changed") {
+			var remoteEventConverted = google.converter.convertEvent(remoteEvent, localEvent.calendarId);
+			remoteEventConverted._id = localEvent._id;
+			remoteEventConverted._rev = localEvent._rev;
+			remoteEventConverted.google.lastSyncedRevision = parseInt(localRev) + 1;
+			request.put({
+				url : db + "/" + remoteEventConverted._id,
+				json : remoteEventConverted
+			}, function(err, response, json) {
+				if (err) {
+					res.send({
+						err : "There was an error updating the local event: " + err
+					});
+				} else {
+					res.send({
+						message : "updated local event."
+					});
+				}
+			});
+		} else {
+			res.send({
+				err : "Not implemented. Status: " + JSON.stringify(status)
+			});
+		}
 
 	});
 };
@@ -214,12 +352,111 @@ exports.sync = function(req, res) {
 				err : err
 			});
 		} else {
-			persistEventList(todo.changedRemote, calId, function(err, results) {
-				res.send({
-					err : err,
-					log : results
-				});
+			persistEventList(todo.newRemote, calId, function(err, results) {
+				if (err) {
+					res.send({
+						err : err
+					});
+				} else {
+					var calUrl = db + "/" + calId;
+					request.get(calUrl, function(err, resp, body) {
+
+						var calObj = JSON.parse(body);
+						// TODO!
+						calObj.google.lastSync = "just now";
+						request.put({
+							url : calUrl,
+							json : calObj
+						}, function(err) {
+							res.send({
+								err : err,
+								log : results
+							});
+						});
+					});
+				}
 			});
+		}
+	});
+};
+
+exports.findConflicts = findConflicts = function(todo) {
+	var conflicts = [];
+
+	var createLookupByGoogleId = function(array) {
+		var lookup = {};
+		if (!array) {
+			return lookup;
+		}
+		array.forEach(function(event) {
+			assert(event.google !== undefined, "Cannot create lookup by GoogleID - missing google info");
+			assert(event.google.id !== undefined, "Cannot create lookup by googleID - missing id!");
+			lookup[event.google.id] = event;
+		});
+		return lookup;
+	};
+	var changedLocal = createLookupByGoogleId(todo.changedLocal);
+	var deletedLocal = createLookupByGoogleId(todo.deletedLocal);
+	var changedRemote = createLookupByGoogleId(todo.changedRemote);
+	var deletedOnRemote = createLookupByGoogleId(todo.deletedOnRemote);
+
+	if (todo.changedLocal) {
+		todo.changedLocal.forEach(function(localEvent) {
+			var remoteEvent = changedRemote[localEvent.google.id];
+			if (remoteEvent) {
+				conflicts.push({
+					remoteEvent : remoteEvent,
+					localEvent : localEvent,
+					localOp : "change",
+					remoteOp : "change",
+					googleId : localEvent.google.id,
+				});
+			}
+			var deletedOnRemoteEvent = deletedOnRemote[localEvent.google.id];
+			if (deletedOnRemoteEvent) {
+				assert(deletedOnRemoteEvent === localEvent);
+				conflicts.push({
+					localEvent : localEvent,
+					remoteEvent : null,
+					localOp : "change",
+					remoteOp : "delete",
+					googleId : localEvent.google.id,
+				});
+			}
+		});
+	}
+	if (todo.deletedLocal) {
+		todo.deletedLocal.forEach(function(localEvent) {
+			var remoteEvent = changedRemote[localEvent.google.id];
+			if (remoteEvent) {
+				conflicts.push({
+					remoteEvent : remoteEvent,
+					localEvent : localEvent,
+					localOp : "delete",
+					remoteOp : "change",
+					googleId : localEvent.google.id,
+				});
+			}
+		});
+	}
+
+	return conflicts;
+};
+
+exports.showSyncTodo = function(req, res) {
+	var calId = req.query.id;
+	sync_getTodo(calId, function(err, todo) {
+		if (err) {
+			res.send({
+				err : err
+			});
+		} else {
+			res.send({
+				err : err,
+				todo : todo,
+				conflicts : findConflicts(todo)
+			});
+
 		}
 	});
 };
@@ -234,6 +471,7 @@ var persistEventList = function(list, calId, callback) {
 	// generate UUIDs
 	list.forEach(function(entry) {
 		entry._id = UUID.generate();
+		entry.calendarId = calId;
 		entry.google.lastSyncedRevision = 1;
 		if (!entry.batch) {
 			entry.batch = [];
