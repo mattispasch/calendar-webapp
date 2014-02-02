@@ -17,6 +17,7 @@ var app = express();
 
 // all environments
 app.set('port', process.env.PORT || 3000);
+app.set('host', process.env.HOST || "127.0.0.1");
 app.set('views', __dirname + '/views');
 app.set('view engine', 'hjs');
 app.use(express.favicon());
@@ -30,6 +31,12 @@ app.use(express.static(path.join(__dirname, 'public')));
 if ('development' == app.get('env')) {
   app.use(express.errorHandler());
 }
+
+// ROOT
+app.get('/', function(req, res) {
+  res.sendfile('./public/index.html');
+});
+
 
 app.get('/users', user.list);
 
@@ -69,6 +76,6 @@ app.post('/couch/*', function(req, res) {
 	request.post({url: newurl,json:req.body}).pipe(res);
 });
 
-http.createServer(app).listen(app.get('port'), function(){
-  console.log('Express server listening on port ' + app.get('port'));
+http.createServer(app).listen(app.get('port'), app.get('host'), function(){
+  console.log('Express server listening on  ' + app.get('host') + ":" +  app.get('port'));
 });
