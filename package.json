@@ -11,7 +11,8 @@
     "hjs": "*",
     "googleapis" : "*",
     "async" : "*",
-    "moment" : "*"
+    "moment" : "*",
+    "request" : "*"
   },
   "devDependencies" : {
 	  "jasmine-node" : "*"
